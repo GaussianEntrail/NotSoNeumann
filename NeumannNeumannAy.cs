@@ -15,15 +15,17 @@ namespace NotSoNeumann
         int t;
         bool[,] grid;
         bool wrap;
+        bool defaultValue;
         Random r;
 
-        public NeumannNeumannAy(ushort rule, int w, int h, bool wrap = false)
+        public NeumannNeumannAy(ushort rule, int w, int h, bool wrap = false, bool defaultValue = false)
         {
 
             this.rule = rule;
             this.w = w;
             this.h = h;
             this.wrap = wrap;
+            this.defaultValue = defaultValue;
 
             r = new Random();
             t = 0;
@@ -55,7 +57,7 @@ namespace NotSoNeumann
             {
                 return grid[_y, _x];
             }
-            return false;
+            return defaultValue;
         }
         void set(int x, int y, bool k)
         {
