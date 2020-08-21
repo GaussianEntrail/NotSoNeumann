@@ -9,7 +9,7 @@ Console based Von Neumann neighborhood cellular automata programmed in C#
 
 * a 16-bit "rule" is used to determine an output based on the 16 different possible neighborhoods  
 
-#Example
+# Example
 
 * take note of the cell marked X and the cells surrounding it- . are "false" cells and O are "true" cells
 
