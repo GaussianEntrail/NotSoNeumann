@@ -69,10 +69,10 @@ namespace NotSoNeumann
         int neighborhood(int x, int y)
         {
             int output = 0;
-            if (get(x, y - 1)) { output |= 1 << 0; } //UP
-            if (get(x - 1, y)) { output |= 1 << 1; } //LEFT
-            if (get(x + 1, y)) { output |= 1 << 2; } //RIGHT
-            if (get(x, y + 1)) { output |= 1 << 3; } //DOWN
+            if (get(x, y - 1)) { output |= 1 << 0; } //NORTH
+            if (get(x - 1, y)) { output |= 1 << 1; } //WEST
+            if (get(x + 1, y)) { output |= 1 << 2; } //EAST
+            if (get(x, y + 1)) { output |= 1 << 3; } //SOUTH
             return output;
         }
         bool checkRule(int inputState)
