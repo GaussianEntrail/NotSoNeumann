@@ -21,10 +21,10 @@ Console based Von Neumann neighborhood cellular automata programmed in C#
 >     . O . .  
 >     . . O .  
 
-* The NEWS neighborhood of this cell can be expressed as 1100 (12)  
+* The NEWS neighborhood of this cell can be expressed as 0101 (5)  
 
 * Let's assume the "Rule" we're using is 32000 - this can be expressed in binary as ‭0111110100000000‬  
 
-* the 12th bit of this number is 1
+* the 12th bit of this number is 0
 
-* so in the next step, X will become 1
+* so in the next step, X will become 0
