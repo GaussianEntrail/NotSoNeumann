@@ -5,9 +5,11 @@ Console based Von Neumann neighborhood cellular automata programmed in C#
 
 * Uses a Von Neumann style neighborhood so each cell has a North (N), East (E), West (W) and South (S) neighbor (NEWS)  
 
-* these neighbors are expressed as a four bit number- (SEWN)  
+* these neighbors are expressed as a four bit number- NEWS.  
 
-* a 16-bit "rule" is used to determine an output based on the 16 different possible neighborhoods  
+* Since each cell is a binary value, there are 16 possible NEWS neighborhoods 
+
+* a 16-bit "rule" is used to determine an output based on the 16 different possible NEWS neighborhoods  
 
 # Example
 
@@ -19,9 +21,9 @@ Console based Von Neumann neighborhood cellular automata programmed in C#
 >     . O . .  
 >     . . O .  
 
-* The SEWN neighborhood of this cell can be expressed as 1100 (12)  
+* The NEWS neighborhood of this cell can be expressed as 1100 (12)  
 
-* Let's assume the "Rule" we're using is 32000 - expressed as ‭0111110100000000‬  
+* Let's assume the "Rule" we're using is 32000 - this can be expressed in binary as ‭0111110100000000‬  
 
 * the 12th bit of this number is 1
 
