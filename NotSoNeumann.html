@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+	<body style="background-color:black; color:white; font-size:16px; font-family:courier;">
+		<ul>
+			<li>Cellular Automata with ortogonal neighborhood</li>
+			<li>Cells can be either On (1) or Off (0)</li>
+			<li>Works according to a "Rule" which is a 16-bit number (0 - 65535)</li>
+			<li>At every step:
+				<ul>
+					<li>take the North, East, West and South (NEWS) neighbors of a cell, and express them as a 4-bit number X (0 - 15)</li>
+					<li>look up the Xth bit of the "Rule" number</li>
+					<li>the cell's new value is whatever this Xth bit is (0 or 1)</li>
+					<li>for edge and corner cells, the value of out-of-bounds neighbors is assumed to be 0 (Unless wrapping is enabled)</li>
+				</ul>
+			</li>
+			<li>Mouse click on a cell to toggle it between On and Off states</li>
+		</ul>
+		<br>
+		<div> 
+			SET RULE: <input id="ruleNumberSet" type="number"><button onclick="set_rule()">SET RULE</button>
+			<button onclick = "thing.random_rule()">RANDOM RULE</button>
+			<br>
+			<button onclick = "thing.toggle_pause()">PAUSE</button>
+			<button onclick = "thing.toggle_wrap()">TOGGLE WRAPPING</button>
+			<button onclick = "thing.random_fill()">RANDOMIZE GRID</button>
+			<button onclick = "thing.clear()">CLEAR GRID</button>
+			
+		</div>
+		
+		<canvas id="d" width = "960" height = "800"></canvas>
+	<script>
+		var c = document.getElementById("d");
+		var ctx = c.getContext("2d");
+		var time = 0;
+		var time_step = 5;
+		var update_speed = 100;
+
+		function getMousePos(canvas, evt) {
+			var rect = canvas.getBoundingClientRect();
+			return  {
+        			x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+			        y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+			};
+		}
+		
+		var mousePos = {x:0, y:0}
+		c.addEventListener("mousemove", function(evt) {
+			mousePos = getMousePos(c, evt);
+		},false);
+
+		//Tile sizes, 	
+		const tile_w = 16;
+		const tile_h = 16;
+		
+
+		class NeumannNeumannAy{
+
+			constructor(width, height, rule = 0, defaultvalue = false, wraparound = false) {
+				this.boardx = 16;
+				this.boardy = 32;
+
+				this.width = width;
+				this.height = height;
+				this.rule = rule;
+				this.defaultvalue = defaultvalue;
+				this.wraparound = wraparound;
+
+				this.run = true;
+
+				this.grid = Array(this.height).fill(0).map(x => Array(this.width).fill(false) );	
+				this.random_fill();
+			}	
+
+			clear() {
+				this.grid = Array(this.height).fill(0).map( x => Array(this.width).fill(false) );
+			}
+			
+			random_fill() {
+				var x,y;
+				for (x=0;x<this.width;x++) {
+					for (y=0;y<this.height;y++) {
+						this.set(x, y, (Math.random() > 0.5) );
+					}
+				}
+			}
+		
+			get(x, y) {
+				
+				var _x = x;
+				var _y = y;
+				if (this.wraparound) {
+					_x = (x + this.width) % this.width;
+					_y = (y + this.height) % this.height;
+				}
+
+				if (_x >= 0 && _x < this.width && _y >= 0 && _y < this.height) {
+					return this.grid[_y][_x];
+				}
+				return this.defaultvalue;
+			}
+
+			set(x, y, k) {
+				if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+					this.grid[y][x] = k;
+					return true;
+				}
+				return false;
+			}
+
+			neumann_neighbors(x, y) {
+				var count = 0;
+
+				if (this.get(x, y - 1)) {count += 8;} //NORTH
+				if (this.get(x + 1, y)) {count += 4;} //EAST
+				if (this.get(x - 1, y)) {count += 2;} //WEST
+				if (this.get(x, y + 1)) {count += 1;} //SOUTH
+
+				return count;
+			}
+
+			do_rule(n) {
+				var _n = n % 16;
+				return ( (1 & (this.rule >> _n) ) == 1 );
+			}
+
+			random_rule() {
+				this.update_rule( Math.floor(Math.random() * 65536) % 65536 );
+			}
+			
+			update_rule(n) {
+				var newrule = n % 65535;
+				this.rule = newrule;
+			}
+			
+			toggle_wrap() {
+				this.wraparound = !this.wraparound;
+			}
+			
+			toggle_pause() {
+				this.run = !this.run;
+			}
+
+			update() {
+				if (!this.run) {return;}
+
+				var newgrid = Array(this.height).fill(0).map( x => Array(this.width).fill(false) );	
+
+				var x, y;
+				for (x=0;x<this.width;x++) {
+					for (y=0;y<this.height;y++) {
+						newgrid[y][x] = this.do_rule( this.neumann_neighbors(x,y) );
+					}
+				}
+				this.grid = newgrid;
+			}
+			
+			mousedown(mouseX, mouseY, mouseButton) {
+				var x = Math.floor((mousePos.x - this.boardx)/tile_w);
+				var y = Math.floor((mousePos.y - this.boardy)/tile_h);
+				switch(mouseButton) {
+					default:
+						this.set(x, y, !this.get(x,y) );
+						break;
+				}
+			}
+
+			draw() {
+				ctx.clearRect(0, 0, c.width, c.height);
+				
+				//black background
+				ctx.fillStyle = "black";
+				ctx.fillRect(0, 0, c.width, c.height);
+				
+
+				//tell us which rule is being used
+				ctx.fillStyle = "white";
+				ctx.font = "16px Arial";
+				ctx.fillText("Rule: " + this.rule + ";\tWraparound: " + this.wraparound + ";\tRunning: " + this.run, 16, 24); 
+
+				//draw border around grid
+				ctx.strokeStyle = "white";
+				ctx.beginPath();
+				ctx.rect(this.boardx, this.boardy, this.width * tile_w, this.height * tile_h);
+				ctx.stroke();
+				
+
+				//draw the grid
+				var x, y, draw_x, draw_y, current;
+				for (x=0;x<this.width;x++) {
+					for (y=0;y<this.height;y++) {
+						current = this.get(x,y);
+						draw_x = this.boardx + (x * tile_w);
+						draw_y = this.boardy + (y * tile_h);
+						if (current) {
+							ctx.fillStyle = "white";
+							ctx.fillRect(draw_x, draw_y, tile_w, tile_h);
+						}	
+					}
+				}
+				
+				//cursor
+				ctx.strokeStyle = "#ff0000"
+				ctx.beginPath();
+				ctx.rect(Math.floor(mousePos.x/tile_w) * tile_w, Math.floor(mousePos.y/tile_h) * tile_h, tile_w, tile_h)
+				ctx.stroke();
+
+				
+			}
+		};
+		
+		var thing = new NeumannNeumannAy(Math.floor((c.width-32) / tile_w) , Math.floor((c.height - 48) / tile_h), Math.floor(Math.random() * 65536) % 65536  ); 
+		c.addEventListener("mousedown", function(evt) {
+			mousePos = getMousePos(c, evt);
+			thing.mousedown(mousePos.x, mousePos.y, evt.button);
+		}, false);
+
+
+		function set_rule() {
+			var ruleField = document.getElementById("ruleNumberSet");
+			var newRule = 0;
+			try {
+				newRule = parseInt(ruleField.value);
+				thing.update_rule(newRule);
+			} catch(e) {
+			}
+			
+		}
+
+
+
+		function step() {
+			time += time_step;
+			if (time % update_speed == 0) {thing.update(); time = 0;}
+			thing.draw();
+		}
+		setInterval(step, time_step);
+		
+
+		
+				
+	</script>
+	</body>
+</html>
